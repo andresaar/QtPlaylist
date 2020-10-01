@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,5 +20,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QNetworkAccessManager *manager;
+    QNetworkRequest request;
+
+private slots:
+    void managerFinished(QNetworkReply *reply);
 };
 #endif // MAINWINDOW_H
