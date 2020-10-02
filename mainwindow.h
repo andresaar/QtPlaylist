@@ -2,9 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkRequest>
-#include <QtNetwork/QNetworkReply>
+#include <QtNetwork>
+#include <QtNetworkAuth>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -20,10 +19,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QNetworkAccessManager *manager;
-    QNetworkRequest request;
+    QOAuth2AuthorizationCodeFlow* spotifyAuth;
+    QOAuthHttpServerReplyHandler* spotifyReplyHandler;
 
 private slots:
-    void managerFinished(QNetworkReply *reply);
+    void replyFinished(QNetworkReply *reply);
 };
 #endif // MAINWINDOW_H
