@@ -4,6 +4,7 @@
 #include <QtNetworkAuth>
 #include <QtCore>
 #include <QtGui>
+#include <QJsonDocument>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -12,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     // create OAuth object to use Spotify API
+    this->authorized = FALSE;
     spotifyAuth = new QOAuth2AuthorizationCodeFlow;
     // Http server for Uri reply
     spotifyReplyHandler = new QOAuthHttpServerReplyHandler(1337, this);
@@ -24,38 +26,83 @@ MainWindow::MainWindow(QWidget *parent)
     // Open Browser to grant authorization -- needed for search queries
     connect(spotifyAuth, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
 
-    // Test -- when authorized, try get Amianto - Supercombo information from API
+    // When authorized, set bool 'authorized' as True and change color of button
     connect(spotifyAuth, &QOAuth2AuthorizationCodeFlow::statusChanged, [=](
                 QAbstractOAuth::Status status) {
             if (status == QAbstractOAuth::Status::Granted){
-                spotifyAuth->get(QUrl("https://api.spotify.com/v1/search?q=amianto&type=track"));
+                ui->connectToSpotify->setStyleSheet("background-color: rgb(36,223,7)");
+                ui->connectToSpotify->setText("Connected to Spotify");
+                ui->connectToSpotify->setDisabled(TRUE);
+                this->authorized = TRUE;
             }
         });
 
-    // Test -- when receiving API response, show information in qDebug
-    connect(spotifyAuth, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    // Timer to wait 500ms after last change in lineEdit to perform query
+    timerToGet = new QTimer(this);
+    timerToGet->setSingleShot(true);
+    connect(timerToGet, &QTimer::timeout, this, &MainWindow::performQuery);
 
-    // Initiate authorization process
-    spotifyAuth->grant();
+    // When receiving API response treat response
+    connect(spotifyAuth, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 
 }
 
 // Function to get QNetworkReply data when it finishes receiving
-// and printing to qDebug
+// and printing results in list
 void MainWindow::replyFinished(QNetworkReply *reply) {
     if (reply->error()) {
         qDebug() << reply->errorString();
         return;
     }
 
-    QString answer = reply->readAll();
+    QJsonDocument jsonReply = QJsonDocument::fromJson(reply->readAll());
+    QJsonObject tracks = jsonReply.object().value("tracks").toObject();
+    jsonReplyArray = tracks.value("items").toArray(); // Array with query reply items
 
-    qDebug() << answer;
+    // Create a list with the song name and artis name for each item
+    QStringList queryResult;
+    foreach (const QJsonValue &value, jsonReplyArray){
+        QString song = "";
+        song += (QString) value.toObject()["name"].toString();
+        song += " - ";
+        song += value.toObject()["artists"].toArray()[0].toObject()["name"].toString();
+        queryResult.append(song);
+    }
+
+    // Write in ui list
+    ui->listQueryResult->clear();
+    ui->listQueryResult->addItems(queryResult);
+
+    qDebug() << queryResult;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
     delete spotifyAuth;
+    delete spotifyReplyHandler;
 }
 
+// Connect to Spotify when button clicked
+void MainWindow::on_connectToSpotify_clicked()
+{
+    // Initiate authorization process
+    spotifyAuth->grant();
+}
+
+// Timer start when editing lineEdit, will only finish after stop editing
+void MainWindow::on_spotifySearch_textEdited()
+{
+    timerToGet->start(500);
+}
+
+// When timer timeout, search for string in lineEdit
+// using Spotify API
+void MainWindow::performQuery()
+{
+    if (this->authorized){
+        QString searchString = ui->spotifySearch->text();
+        if (!searchString.isEmpty())
+            spotifyAuth->get(QUrl("https://api.spotify.com/v1/search?q="+searchString+"&type=track"));
+    }
+}

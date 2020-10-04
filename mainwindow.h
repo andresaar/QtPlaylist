@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QtNetwork>
 #include <QtNetworkAuth>
+#include <QJsonDocument>
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,8 +23,14 @@ private:
     Ui::MainWindow *ui;
     QOAuth2AuthorizationCodeFlow* spotifyAuth;
     QOAuthHttpServerReplyHandler* spotifyReplyHandler;
+    QJsonArray jsonReplyArray;
+    QTimer* timerToGet;
+    bool authorized;
 
 private slots:
     void replyFinished(QNetworkReply *reply);
+    void performQuery();
+    void on_connectToSpotify_clicked();
+    void on_spotifySearch_textEdited();
 };
 #endif // MAINWINDOW_H

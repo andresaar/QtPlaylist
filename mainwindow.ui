@@ -14,24 +14,43 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QListWidget" name="listWidget">
+   <widget class="QListWidget" name="listQueryResult">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>40</y>
+      <y>90</y>
       <width>331</width>
       <height>211</height>
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="spotifySearch">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>331</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="connectToSpotify">
     <property name="geometry">
      <rect>
       <x>20</x>
       <y>10</y>
-      <width>331</width>
-      <height>20</height>
+      <width>191</width>
+      <height>41</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Connect to Spotify</string>
     </property>
    </widget>
   </widget>
