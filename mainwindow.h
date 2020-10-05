@@ -31,6 +31,8 @@ private:
     bool authorized;
 
     void loadPlaylists();
+    int findJsonArray(const QString string, const QJsonArray arr);
+    void loadPlaylistSongs();
 
 private slots:
     void replyFinished(QNetworkReply *reply);
@@ -38,5 +40,7 @@ private slots:
     void on_connectToSpotify_clicked();
     void on_spotifySearch_textEdited();
     void on_createPlaylist_clicked();
+    void on_pushToPlaylist_clicked();
+    void on_playlistSelection_currentTextChanged();
 };
 #endif // MAINWINDOW_H
