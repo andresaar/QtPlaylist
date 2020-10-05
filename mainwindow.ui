@@ -53,6 +53,35 @@
      <string>Connect to Spotify</string>
     </property>
    </widget>
+   <widget class="QComboBox" name="playlistSelection">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>59</y>
+      <width>321</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="createPlaylist">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>10</y>
+      <width>191</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Create new Playlist</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

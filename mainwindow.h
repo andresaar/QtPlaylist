@@ -6,6 +6,7 @@
 #include <QtNetworkAuth>
 #include <QJsonDocument>
 #include <QTimer>
+#include <QFile>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,12 +26,17 @@ private:
     QOAuthHttpServerReplyHandler* spotifyReplyHandler;
     QJsonArray jsonReplyArray;
     QTimer* timerToGet;
+    QFile* config;
+    QJsonDocument configJson;
     bool authorized;
+
+    void loadPlaylists();
 
 private slots:
     void replyFinished(QNetworkReply *reply);
     void performQuery();
     void on_connectToSpotify_clicked();
     void on_spotifySearch_textEdited();
+    void on_createPlaylist_clicked();
 };
 #endif // MAINWINDOW_H

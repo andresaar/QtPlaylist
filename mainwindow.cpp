@@ -5,6 +5,9 @@
 #include <QtCore>
 #include <QtGui>
 #include <QJsonDocument>
+#include <QFileInfo>
+#include <QInputDialog>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -45,6 +48,24 @@ MainWindow::MainWindow(QWidget *parent)
     // When receiving API response treat response
     connect(spotifyAuth, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
 
+    // Read config file, or create it if non-existant
+    if (QFileInfo::exists(".\\config\\config.json") && QFileInfo(".\\config\\config.json").exists()) {
+        config = new QFile(".\\config\\config.json");
+        config->open(QFile::ReadOnly | QFile::Text);
+        configJson = QJsonDocument::fromJson(config->readAll());
+        config->close();
+    }
+    else {
+        QDir dir;
+        dir.mkdir("config");
+
+        QJsonObject initialObj = configJson.object();
+        initialObj.insert("playlists", QJsonArray());
+        configJson.setObject(initialObj);
+    }
+
+    loadPlaylists();
+
 }
 
 // Function to get QNetworkReply data when it finishes receiving
@@ -78,6 +99,12 @@ void MainWindow::replyFinished(QNetworkReply *reply) {
 
 MainWindow::~MainWindow()
 {
+    // save configurations as json file
+    config = new QFile(".\\config\\config.json");
+    config->open(QFile::WriteOnly | QFile::Text | QFile::Truncate);
+    config->write(configJson.toJson());
+    config->close();
+
     delete ui;
     delete spotifyAuth;
     delete spotifyReplyHandler;
@@ -105,4 +132,46 @@ void MainWindow::performQuery()
         if (!searchString.isEmpty())
             spotifyAuth->get(QUrl("https://api.spotify.com/v1/search?q="+searchString+"&type=track"));
     }
+}
+
+// load saved playlists to drop-down menu
+void MainWindow::loadPlaylists()
+{
+    // Load playlists dropdown
+    QStringList playlists;
+    foreach(const QJsonValue &value, configJson.object()["playlists"].toArray()){
+        playlists.append(value.toString());
+    }
+    ui->playlistSelection->clear();
+    ui->playlistSelection->addItems(playlists);
+}
+
+// Create new playlist
+void MainWindow::on_createPlaylist_clicked()
+{
+    // Pop-up input to get playlist name
+    bool OK;
+    QString newPlaylist = QInputDialog::getText(this, "New Playlist", "Playlist Name: ",
+                                                QLineEdit::Normal, QString(), &OK);
+    if(!OK){ // if cancel, do nothing
+        return;
+    }
+
+    if (newPlaylist.isEmpty()) {
+        QMessageBox::warning(this, "Playlist Error", "Empty playlist name");
+    }
+    else if (configJson.object()["playlists"].toArray().contains(newPlaylist)) {
+        QMessageBox::warning(this, "Playlist Error", "Duplicate playlist name");
+    }
+    else { // add new playlist name to configs
+        QJsonObject rootObject = configJson.object();
+        QJsonArray appended = rootObject["playlists"].toArray();
+        appended.append(newPlaylist);
+        rootObject.insert("playlists", appended);
+        configJson.setObject(rootObject);
+    }
+
+    // reload playlists
+    loadPlaylists();
+
 }
