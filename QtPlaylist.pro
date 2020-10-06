@@ -1,4 +1,4 @@
-QT       += core gui network networkauth
+QT       += core gui network networkauth multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

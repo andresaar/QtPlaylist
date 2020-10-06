@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QMediaPlaylist>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -64,6 +65,13 @@ MainWindow::MainWindow(QWidget *parent)
         initialObj.insert("songs", QJsonObject());
         configJson.setObject(initialObj);
     }
+
+    player = new QMediaPlayer;
+    playlist = new QMediaPlaylist;
+
+    connect(player, &QMediaPlayer::currentMediaChanged, [=](const QMediaContent &media){
+       qDebug() << media.canonicalUrl();
+    });
 
     loadPlaylists();
     loadPlaylistSongs();
@@ -210,6 +218,8 @@ void MainWindow::loadPlaylistSongs()
 {
     QJsonArray songs = configJson.object()["playlists"].toObject()[ui->playlistSelection->currentText()].toArray();
     ui->playlistSongs->clear();
+    playlist->clear();
+
     foreach(const QJsonValue &song, songs){
         QListWidgetItem* item = new QListWidgetItem;
         item->setText(song.toString());
@@ -219,6 +229,9 @@ void MainWindow::loadPlaylistSongs()
             item->setBackgroundColor(QColor(255,102,102));
         }
         ui->playlistSongs->addItem(item);
+        if (!configJson.object()["songs"].toObject()[song.toString()].toString().isEmpty())
+            playlist->addMedia(QUrl(configJson.object()["songs"].toObject()[song.toString()].toString()));
+        player->setPlaylist(playlist);
     }
 }
 
@@ -226,4 +239,15 @@ void MainWindow::loadPlaylistSongs()
 void MainWindow::on_playlistSelection_currentTextChanged()
 {
     loadPlaylistSongs();
+}
+
+
+void MainWindow::on_playButton_toggled(bool checked)
+{
+    if (checked) {
+        player->play();
+    }
+    else {
+        player->pause();
+    }
 }

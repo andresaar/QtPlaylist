@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QFile>
 #include <QListWidgetItem>
+#include <QMediaPlayer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -29,6 +30,8 @@ private:
     QTimer* timerToGet;
     QFile* config;
     QJsonDocument configJson;
+    QMediaPlayer* player;
+    QMediaPlaylist* playlist;
     bool authorized;
 
     void loadPlaylists();
@@ -42,5 +45,6 @@ private slots:
     void on_createPlaylist_clicked();
     void on_pushToPlaylist_clicked();
     void on_playlistSelection_currentTextChanged();
+    void on_playButton_toggled(bool checked);
 };
 #endif // MAINWINDOW_H
