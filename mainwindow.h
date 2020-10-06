@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <QFile>
+#include <QListWidgetItem>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -31,7 +32,6 @@ private:
     bool authorized;
 
     void loadPlaylists();
-    int findJsonArray(const QString string, const QJsonArray arr);
     void loadPlaylistSongs();
 
 private slots:

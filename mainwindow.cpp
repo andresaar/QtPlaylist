@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
 
         QJsonObject initialObj = configJson.object();
         initialObj.insert("playlists", QJsonObject());
+        initialObj.insert("songs", QJsonObject());
         configJson.setObject(initialObj);
     }
 
@@ -94,8 +95,6 @@ void MainWindow::replyFinished(QNetworkReply *reply) {
     // Write in ui list
     ui->listQueryResult->clear();
     ui->listQueryResult->addItems(queryResult);
-
-    qDebug() << queryResult;
 }
 
 MainWindow::~MainWindow()
@@ -186,28 +185,24 @@ void MainWindow::on_pushToPlaylist_clicked()
     if (ui->listQueryResult->selectedItems().isEmpty()) {
         return;
     }
+    // append the new song to the playlist conf
+    QJsonObject root = configJson.object();
+    QJsonObject playlists = root["playlists"].toObject();
+    QJsonArray addSong = playlists[ui->playlistSelection->currentText()].toArray();
+    addSong.append(ui->listQueryResult->selectedItems()[0]->text());
+    playlists.insert(ui->playlistSelection->currentText(), addSong);
+    root.insert("playlists", playlists);
 
-    foreach(const QListWidgetItem *selected, ui->listQueryResult->selectedItems()) {
-        QJsonObject root = configJson.object();
-        QJsonObject playlists = root["playlists"].toObject();
-        QJsonArray addSong = playlists[ui->playlistSelection->currentText()].toArray();
-        addSong.append(selected->text());
-        playlists.insert(ui->playlistSelection->currentText(), addSong);
-        root.insert("playlists", playlists);
+    // create a new song object, with its preview_url
+    QJsonObject songs = root["songs"].toObject();
+    songs.insert(ui->listQueryResult->selectedItems()[0]->text(),
+                 jsonReplyArray[ui->listQueryResult->currentIndex().row()].toObject()["preview_url"].toString());
 
-        configJson.setObject(root);
-    }
+    root.insert("songs", songs);
+
+    configJson.setObject(root);
 
     loadPlaylistSongs();
-}
-
-int MainWindow::findJsonArray(const QString string, const QJsonArray arr)
-{
-    for(int i=0; i<arr.size(); i++){
-        if (arr[i].toString() == string)
-            return i;
-    }
-    return -1;
 }
 
 // load the song list to the current playlist
@@ -216,7 +211,14 @@ void MainWindow::loadPlaylistSongs()
     QJsonArray songs = configJson.object()["playlists"].toObject()[ui->playlistSelection->currentText()].toArray();
     ui->playlistSongs->clear();
     foreach(const QJsonValue &song, songs){
-        ui->playlistSongs->addItem(song.toString());
+        QListWidgetItem* item = new QListWidgetItem;
+        item->setText(song.toString());
+
+        // In case no preview is available, set background as red
+        if (configJson.object()["songs"].toObject()[song.toString()].toString().isEmpty()){
+            item->setBackgroundColor(QColor(255,102,102));
+        }
+        ui->playlistSongs->addItem(item);
     }
 }
 
